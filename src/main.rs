@@ -1,3 +1,7 @@
+use wad::Wad;
+
+mod wad;
 fn main() {
-    println!("Hello, world!");
+    let wad = Wad::new("wad/DOOM1.WAD".into());
+    println!("Wad size : {} bytes", wad.data.len());
 }
