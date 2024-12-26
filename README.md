@@ -1,1 +1,2 @@
-# A Doom WAD renderer in rust
+# doom-rust
+A Doom WAD renderer in rust
