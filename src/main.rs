@@ -8,4 +8,6 @@ fn main() {
     println!("Wad type : {}", header.wad_type);
     println!("Numlumps : {}", header.numlumps);
     println!("Info table offset : {}", header.infotableofs);
+
+    println!("Lumps : {:?}", wad.read_directory())
 }
