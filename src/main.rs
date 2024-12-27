@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use wad::Wad;
 
 mod data;
@@ -10,9 +12,7 @@ fn main() {
     println!("Numlumps : {}", header.numlumps);
     println!("Info table offset : {}", header.infotableofs);
 
-    println!(
-        "E1M1 index: {}",
-        wad.get_lump_index("E1M1".to_string()).unwrap()
-    );
+    println!("E1M1 index: {}", wad.get_lump_index("E1M2").unwrap());
     // println!("Lumps : {:?}", wad.read_directory().lumps)
+    println!("Vertices: {:?}", wad.get_vertices("E1M7"));
 }
