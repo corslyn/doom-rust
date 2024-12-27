@@ -1,6 +1,6 @@
 use std::fs;
-#[derive(Debug)]
 
+#[derive(Debug)]
 pub struct Wad {
     pub data: Vec<u8>,
 }
@@ -23,6 +23,11 @@ pub struct Lump {
     pub filepos: i32,
     pub size: i32,
     pub name: String,
+}
+
+pub struct Vertex {
+    pub x_position: i16,
+    pub y_position: i16,
 }
 
 #[derive(Debug)]
@@ -48,8 +53,8 @@ impl Wad {
             }
         };
 
-        let numlumps = i32::from_le_bytes(self.read_4_bytes(4).try_into().unwrap());
-        let infotableofs = i32::from_le_bytes(self.read_4_bytes(8).try_into().unwrap());
+        let numlumps = i32::from_le_bytes(self.read_n_bytes(4, 4).try_into().unwrap());
+        let infotableofs = i32::from_le_bytes(self.read_n_bytes(8, 4).try_into().unwrap());
 
         WadHeader {
             wad_type,
@@ -58,14 +63,25 @@ impl Wad {
         }
     }
 
-    /// Takes an offset and read the next 4 bytes
-    pub fn read_4_bytes(&self, offset: i32) -> Vec<u8> {
-        self.data[offset as usize..offset as usize + 4].to_vec()
+    /// Returns the vertex (x and y coordinates) at the given offset
+    pub fn get_vertex(&self, offset: i32) -> Vertex {
+        Vertex {
+            x_position: i16::from_le_bytes(self.read_n_bytes(offset, 2).try_into().unwrap()),
+            y_position: i16::from_le_bytes(self.read_n_bytes(offset + 2, 2).try_into().unwrap()),
+        }
     }
 
-    /// Takes an offset and read the next 8 bytes
-    pub fn read_8_bytes(&self, offset: i32) -> Vec<u8> {
-        self.data[offset as usize..offset as usize + 8].to_vec()
+    /// Returns the lump index of the given lump name
+    pub fn get_lump_index(&self, lump_name: String) -> Option<usize> {
+        self.read_directory()
+            .lumps
+            .iter()
+            .position(|lump| lump.name.trim_end_matches('\0') == lump_name)
+    }
+
+    /// Takes an offset and read the next N bytes
+    pub fn read_n_bytes(&self, offset: i32, bytes: usize) -> &[u8] {
+        &self.data[offset as usize..offset as usize + bytes]
     }
 
     /// Returns all the lumps contained in the wad
@@ -76,9 +92,9 @@ impl Wad {
         for i in 0..numlumps {
             let offset = header.infotableofs + i * 16;
             let lump = Lump {
-                filepos: i32::from_le_bytes(self.read_4_bytes(offset).try_into().unwrap()),
-                size: i32::from_le_bytes(self.read_4_bytes(offset + 4).try_into().unwrap()),
-                name: String::from_utf8(self.read_8_bytes(offset + 8)).unwrap(),
+                filepos: i32::from_le_bytes(self.read_n_bytes(offset, 4).try_into().unwrap()),
+                size: i32::from_le_bytes(self.read_n_bytes(offset + 4, 4).try_into().unwrap()),
+                name: String::from_utf8(self.read_n_bytes(offset + 8, 8).to_vec()).unwrap(),
             };
             lumps.push(lump);
         }

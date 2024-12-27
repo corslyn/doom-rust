@@ -1,5 +1,6 @@
 use wad::Wad;
 
+mod data;
 mod wad;
 fn main() {
     let wad = Wad::new("wad/DOOM1.WAD".into());
@@ -9,5 +10,9 @@ fn main() {
     println!("Numlumps : {}", header.numlumps);
     println!("Info table offset : {}", header.infotableofs);
 
-    println!("Lumps : {:?}", wad.read_directory())
+    println!(
+        "E1M1 index: {}",
+        wad.get_lump_index("E1M1".to_string()).unwrap()
+    );
+    // println!("Lumps : {:?}", wad.read_directory().lumps)
 }
