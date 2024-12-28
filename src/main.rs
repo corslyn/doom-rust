@@ -11,5 +11,6 @@ fn main() {
     let wad = Wad::new("wad/DOOM1.WAD".into());
     let map = Map::new(&wad, "E1M1");
 
-    render::render(map);
+    println!("{:?}", map.nodes);
+    // render::render(map);
 }

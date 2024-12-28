@@ -61,7 +61,10 @@ impl Wad {
             let lump = Lump {
                 filepos: i32::from_le_bytes(self.read_n_bytes(offset, 4).try_into().unwrap()),
                 size: i32::from_le_bytes(self.read_n_bytes(offset + 4, 4).try_into().unwrap()),
-                name: String::from_utf8(self.read_n_bytes(offset + 8, 8).to_vec()).unwrap(),
+                name: String::from_utf8(self.read_n_bytes(offset + 8, 8).to_vec())
+                    .unwrap()
+                    .trim_matches(char::from(0))
+                    .to_string(),
             };
             lumps.push(lump);
         }

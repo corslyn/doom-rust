@@ -31,16 +31,16 @@ pub struct Directory {
 
 pub struct Map {
     pub name: String,
-    // pub things: Vec<Thing>,
+    pub things: Vec<Thing>,
     pub linedefs: Vec<Linedef>,
-    // pub sidedefs: <Vec<Sidedef>,
+    // pub sidedefs: Vec<Sidedef>,
     pub vertexes: Vec<Vertex>,
-    // pub segs: <Vec<Seg>,
-    // pub ssectors: <Vec<SSubsector>,
-    // pub nodes: <Vec<Node>,
-    // pub sectors: <Vec<Sector>,
-    // pub reject: <Vec<u8>,
-    // pub blockmap: <Vec<u8>,
+    pub segments: Vec<Segment>,
+    pub subsectors: Vec<Subsector>,
+    pub nodes: Vec<Node>,
+    // pub sectors: Vec<Sector>,
+    // pub reject: Vec<u8>,
+    // pub blockmap: Vec<u8>,
 }
 
 #[derive(Debug)]
@@ -61,4 +61,46 @@ pub struct Linedef {
 pub struct Vertex {
     pub x_position: i16,
     pub y_position: i16,
+}
+
+#[derive(Debug)]
+pub struct Node {
+    pub x_start: i16,
+    pub y_start: i16,
+    pub dx_start: i16,
+    pub dy_start: i16,
+    pub r_box: BBox,
+    pub l_box: BBox,
+    pub r_child: i16,
+    pub l_child: i16,
+}
+
+pub struct Subsector {
+    pub seg_count: i16,
+    pub first_seg: i16,
+}
+
+pub struct Segment {
+    pub start: i16,
+    pub end: i16,
+    pub angle: i16,
+    pub linedef_num: i16,
+    pub direction: i16,
+    pub offset: i16,
+}
+
+pub struct Thing {
+    pub x: i16,
+    pub y: i16,
+    pub angle: i16,
+    pub thing_type: i16,
+    pub flags: i16,
+}
+#[derive(Debug)]
+
+pub struct BBox {
+    pub top: i16,
+    pub bottom: i16,
+    pub left: i16,
+    pub right: i16,
 }
