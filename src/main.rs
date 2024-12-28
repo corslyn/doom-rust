@@ -3,11 +3,13 @@
 use data::Map;
 use wad::Wad;
 
+mod config;
 mod data;
+mod render;
 mod wad;
 fn main() {
     let wad = Wad::new("wad/DOOM1.WAD".into());
-    let map = Map::new(&wad, "E1M1");
+    let map = Map::new(&wad, "E1M9");
     let header = wad.read_header();
     println!("Wad size : {} bytes", wad.data.len());
     println!("Wad type : {}", header.wad_type);
@@ -17,4 +19,5 @@ fn main() {
     // println!("Lumps : {:?}", wad.read_directory().lumps)
     // println!("Vertices: {:?}", wad.get_vertices(&map.name));
     println!("{:?}", map.linedefs);
+    render::render(map);
 }
