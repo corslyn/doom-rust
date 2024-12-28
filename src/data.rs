@@ -1,38 +1,4 @@
-use crate::wad::Wad;
-
-pub struct Map {
-    pub name: String,
-    // pub things: Vec<Thing>,
-    pub linedefs: Vec<Linedef>,
-    // pub sidedefs: <Vec<Sidedef>,
-    pub vertexes: Vec<Vertex>,
-    // pub segs: <Vec<Seg>,
-    // pub ssectors: <Vec<SSubsector>,
-    // pub nodes: <Vec<Node>,
-    // pub sectors: <Vec<Sector>,
-    // pub reject: <Vec<u8>,
-    // pub blockmap: <Vec<u8>,
-}
-
-#[derive(Debug)]
-pub struct Linedef {
-    /// Starting vertex
-    pub start: i16,
-
-    /// Ending vertex
-    pub end: i16,
-    // flags: i16,
-    // special: i16,
-    // tag: i16,
-    // front_sidedef: i16,
-    // back_sidedef: i16,
-}
-
-#[derive(Debug)]
-pub struct Vertex {
-    pub x_position: i16,
-    pub y_position: i16,
-}
+use crate::*;
 
 impl Wad {
     /// Returns a vector of vertices

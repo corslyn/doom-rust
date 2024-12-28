@@ -1,37 +1,6 @@
 use std::fs;
 
-use crate::data::*;
-
-#[derive(Debug)]
-pub struct Wad {
-    pub data: Vec<u8>,
-}
-
-pub struct WadHeader {
-    /// Wad type: IWAD or PWAD
-    pub wad_type: String,
-
-    /// Amount of lumps
-    pub numlumps: i32,
-
-    /// Offset where the lumps begins
-    pub infotableofs: i32,
-}
-
-#[derive(Debug)]
-
-/// Represents one lump of the wad
-pub struct Lump {
-    pub filepos: i32,
-    pub size: i32,
-    pub name: String,
-}
-
-#[derive(Debug)]
-/// Contains all the lumps of the wad
-pub struct Directory {
-    pub lumps: Vec<Lump>,
-}
+use crate::*;
 
 impl Wad {
     pub fn new(file_path: std::path::PathBuf) -> Wad {

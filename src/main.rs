@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 
-use data::Map;
-use wad::Wad;
+use types::*;
 
 mod config;
 mod data;
 mod render;
+mod types;
 mod wad;
 fn main() {
     let wad = Wad::new("wad/DOOM1.WAD".into());

@@ -7,7 +7,7 @@ use sdl2::pixels::Color;
 use std::time::Duration;
 
 use crate::config::WIN_RES;
-use crate::data::{Map, Vertex};
+use crate::*;
 
 pub fn render(map: Map) {
     let sdl_context = sdl2::init().unwrap();
