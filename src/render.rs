@@ -56,7 +56,7 @@ pub fn render(map: Map) {
             let y = remap_y(vertex.y_position);
 
             canvas
-                .circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
+                .filled_circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
                 .unwrap(); // Draw vertices as circles
         }
 
@@ -66,10 +66,10 @@ pub fn render(map: Map) {
             let y = remap_y(thing.y);
             match thing.thing_type {
                 1 => canvas
-                    .circle(x as i16, y as i16, 2, Color::RGB(0, 255, 0))
+                    .filled_circle(x as i16, y as i16, 2, Color::RGB(0, 255, 0))
                     .unwrap(), // Player green
                 _ => canvas
-                    .circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
+                    .filled_circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
                     .unwrap(), // The rest is orange
             }
         }
