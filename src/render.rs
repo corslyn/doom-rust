@@ -1,3 +1,5 @@
+// Renders the automap for now
+
 extern crate sdl2;
 
 use sdl2::event::Event;
@@ -56,6 +58,20 @@ pub fn render(map: Map) {
             canvas
                 .circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
                 .unwrap(); // Draw vertices as circles
+        }
+
+        // Place things on the map
+        for thing in &map.things {
+            let x = remap_x(thing.x);
+            let y = remap_y(thing.y);
+            match thing.thing_type {
+                1 => canvas
+                    .circle(x as i16, y as i16, 2, Color::RGB(0, 255, 0))
+                    .unwrap(), // Player green
+                _ => canvas
+                    .circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
+                    .unwrap(), // The rest is orange
+            }
         }
 
         canvas.present();
