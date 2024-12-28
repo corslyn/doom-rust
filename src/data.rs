@@ -17,10 +17,10 @@ pub struct Map {
 #[derive(Debug)]
 pub struct Linedef {
     /// Starting vertex
-    start: i16,
+    pub start: i16,
 
     /// Ending vertex
-    end: i16,
+    pub end: i16,
     // flags: i16,
     // special: i16,
     // tag: i16,
