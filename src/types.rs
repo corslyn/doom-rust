@@ -96,8 +96,9 @@ pub struct Thing {
     pub thing_type: i16,
     pub flags: i16,
 }
-#[derive(Debug)]
 
+/// Bounding box
+#[derive(Debug)]
 pub struct BBox {
     pub top: i16,
     pub bottom: i16,

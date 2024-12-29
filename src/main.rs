@@ -2,6 +2,7 @@
 
 use types::*;
 
+mod bsp;
 mod config;
 mod data;
 mod render;

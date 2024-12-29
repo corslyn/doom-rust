@@ -32,47 +32,18 @@ pub fn render(map: Map) {
     let remap_x = remap_x(&map.vertexes, WIN_RES.0);
     let remap_y = remap_y(&map.vertexes, WIN_RES.1);
 
+    let mut automap_active = true; // Flag for automap toggle
+
     'running: loop {
         canvas.set_draw_color(Color::RGB(0, 0, 0)); // Black background
         canvas.clear();
 
-        // Draw linedefs
-        canvas.set_draw_color(Color::RGB(255, 0, 0)); // Red for linedefs
-        for linedef in &map.linedefs {
-            let start = &map.vertexes[linedef.start as usize];
-            let end = &map.vertexes[linedef.end as usize];
-            // Remaps all coordinates so that they fit on the window
-            let x1 = remap_x(start.x_position);
-            let x2 = remap_x(end.x_position);
-            let y1 = remap_y(start.y_position);
-            let y2 = remap_y(end.y_position);
-            canvas.draw_line((x1, y1), (x2, y2)).unwrap();
+        if automap_active {
+            // Draw automap if active
+            automap(&mut canvas, &map, &remap_x, &remap_y);
         }
 
-        // Draw vertices
-        for vertex in &map.vertexes {
-            // Remaps all coordinates so that they fit on the window
-            let x = remap_x(vertex.x_position);
-            let y = remap_y(vertex.y_position);
-
-            canvas
-                .filled_circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
-                .unwrap(); // Draw vertices as circles
-        }
-
-        // Place things on the map
-        for thing in &map.things {
-            let x = remap_x(thing.x);
-            let y = remap_y(thing.y);
-            match thing.thing_type {
-                1 => canvas
-                    .filled_circle(x as i16, y as i16, 2, Color::RGB(0, 255, 0))
-                    .unwrap(), // Player green
-                _ => canvas
-                    .filled_circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
-                    .unwrap(), // The rest is orange
-            }
-        }
+        draw_nodes(&mut canvas, &map.nodes, &remap_x, &remap_y);
 
         canvas.present();
 
@@ -83,6 +54,10 @@ pub fn render(map: Map) {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Tab),
+                    ..
+                } => automap_active = !automap_active, // Toggle automap state
                 _ => {}
             }
         }
@@ -91,7 +66,7 @@ pub fn render(map: Map) {
     }
 }
 
-pub fn remap_x(vertices: &Vec<Vertex>, win_width: u32) -> Box<dyn Fn(i16) -> i32> {
+fn remap_x(vertices: &Vec<Vertex>, win_width: u32) -> Box<dyn Fn(i16) -> i32> {
     let padding = 30.0;
     // Determine map bounds for x-axis
     let (min_x, max_x) = vertices
@@ -111,7 +86,7 @@ pub fn remap_x(vertices: &Vec<Vertex>, win_width: u32) -> Box<dyn Fn(i16) -> i32
     // Return a closure to perform x-coordinate remapping
     Box::new(move |x: i16| -> i32 { (((x - min_x) as f32) * scale_x + offset_x) as i32 })
 }
-pub fn remap_y(vertices: &Vec<Vertex>, win_height: u32) -> Box<dyn Fn(i16) -> i32> {
+fn remap_y(vertices: &Vec<Vertex>, win_height: u32) -> Box<dyn Fn(i16) -> i32> {
     let padding = 30;
 
     // Determine map bounds for y-axis
@@ -139,4 +114,86 @@ pub fn remap_y(vertices: &Vec<Vertex>, win_height: u32) -> Box<dyn Fn(i16) -> i3
 
         flipped_y.round() as i32
     })
+}
+
+fn draw_nodes(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    nodes: &Vec<Node>,
+    remap_x: &Box<dyn Fn(i16) -> i32>,
+    remap_y: &Box<dyn Fn(i16) -> i32>,
+) {
+    // left rectangle
+    let node = bsp::find_player_node(1056, -3616, &nodes, (nodes.len() - 1).try_into().unwrap());
+    let x1 = remap_x(node.l_box.right);
+    let x2 = remap_x(node.l_box.left);
+    let y1 = remap_y(node.l_box.bottom);
+    let y2 = remap_y(node.l_box.top);
+    canvas
+        .rectangle(
+            x1 as i16,
+            y1 as i16,
+            x2 as i16,
+            y2 as i16,
+            Color::RGB(255, 0, 0),
+        )
+        .unwrap();
+
+    // right rectangle
+    let x1 = remap_x(node.r_box.right);
+    let x2 = remap_x(node.r_box.left);
+    let y1 = remap_y(node.r_box.bottom);
+    let y2 = remap_y(node.r_box.top);
+    canvas
+        .rectangle(
+            x1 as i16,
+            y1 as i16,
+            x2 as i16,
+            y2 as i16,
+            Color::RGB(0, 255, 0),
+        )
+        .unwrap();
+}
+
+fn automap(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    map: &Map,
+    remap_x: &Box<dyn Fn(i16) -> i32>,
+    remap_y: &Box<dyn Fn(i16) -> i32>,
+) {
+    canvas.set_draw_color(Color::RGB(255, 255, 0)); // Yellow for linedefs
+    for linedef in &map.linedefs {
+        let start = &map.vertexes[linedef.start as usize];
+        let end = &map.vertexes[linedef.end as usize];
+        // Remaps all coordinates so that they fit on the window
+        let x1 = remap_x(start.x_position);
+        let x2 = remap_x(end.x_position);
+        let y1 = remap_y(start.y_position);
+        let y2 = remap_y(end.y_position);
+        canvas.draw_line((x1, y1), (x2, y2)).unwrap();
+    }
+
+    // Draw vertices
+    for vertex in &map.vertexes {
+        // Remaps all coordinates so that they fit on the window
+        let x = remap_x(vertex.x_position);
+        let y = remap_y(vertex.y_position);
+
+        canvas
+            .filled_circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
+            .unwrap(); // Draw vertices as circles
+    }
+
+    // Place things on the map
+    for thing in &map.things {
+        let x = remap_x(thing.x);
+        let y = remap_y(thing.y);
+        match thing.thing_type {
+            1 => canvas
+                .filled_circle(x as i16, y as i16, 2, Color::RGB(0, 255, 0))
+                .unwrap(), // Player green
+            _ => canvas
+                .filled_circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
+                .unwrap(), // The rest is orange
+        }
+    }
 }
