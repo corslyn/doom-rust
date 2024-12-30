@@ -54,6 +54,13 @@ pub fn render(map: Map) {
             &remap_x,
             &remap_y,
         );*/
+        draw_node(
+            &map.nodes,
+            map.nodes.len() - 1,
+            &mut canvas,
+            &remap_x,
+            &remap_y,
+        );
 
         canvas.present();
 
@@ -90,50 +97,6 @@ pub fn render(map: Map) {
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // ~60 FPS
     }
-}
-
-fn draw_bbox(
-    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
-    nodes: &Vec<Node>,
-    player: &Player,
-    remap_x: &Box<dyn Fn(i16) -> i32>,
-    remap_y: &Box<dyn Fn(i16) -> i32>,
-) {
-    // left rectangle
-    let node = bsp::find_player_node(
-        player.pos.0,
-        player.pos.1,
-        &nodes,
-        (nodes.len() - 1).try_into().unwrap(),
-    );
-    let x1 = remap_x(node.l_box.right);
-    let x2 = remap_x(node.l_box.left);
-    let y1 = remap_y(node.l_box.bottom);
-    let y2 = remap_y(node.l_box.top);
-    canvas
-        .rectangle(
-            x1 as i16,
-            y1 as i16,
-            x2 as i16,
-            y2 as i16,
-            Color::RGB(255, 0, 0),
-        )
-        .unwrap();
-
-    // right rectangle
-    let x1 = remap_x(node.r_box.right);
-    let x2 = remap_x(node.r_box.left);
-    let y1 = remap_y(node.r_box.bottom);
-    let y2 = remap_y(node.r_box.top);
-    canvas
-        .rectangle(
-            x1 as i16,
-            y1 as i16,
-            x2 as i16,
-            y2 as i16,
-            Color::RGB(0, 255, 0),
-        )
-        .unwrap();
 }
 
 fn automap(
@@ -193,4 +156,49 @@ fn draw_player_pos(pos: (i16, i16), canvas: &mut sdl2::render::Canvas<sdl2::vide
     canvas
         .filled_circle(x, y, 2, Color::RGB(0, 255, 0))
         .unwrap() // Player green
+}
+
+fn draw_node(
+    nodes: &Vec<Node>,
+    node_id: usize,
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    remap_x: &Box<dyn Fn(i16) -> i32>,
+    remap_y: &Box<dyn Fn(i16) -> i32>,
+) {
+    let node = &nodes[node_id];
+    let bbox_front = &node.r_box;
+    let bbox_back = &node.l_box;
+    draw_bbox(bbox_front, Color::GREEN, canvas, remap_x, remap_y);
+    draw_bbox(bbox_back, Color::RED, canvas, remap_x, remap_y);
+    canvas.set_draw_color(Color::BLUE);
+    canvas
+        .draw_line(
+            (remap_x(node.x_start), remap_y(node.y_start)),
+            (
+                remap_x(node.x_start + node.dx_start),
+                remap_y(node.y_start + node.dy_start),
+            ),
+        )
+        .unwrap();
+}
+fn draw_bbox(
+    bbox: &BBox,
+    color: Color,
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    remap_x: &Box<dyn Fn(i16) -> i32>,
+    remap_y: &Box<dyn Fn(i16) -> i32>,
+) {
+    let x1 = remap_x(bbox.left);
+    let x2 = remap_x(bbox.right);
+    let y1 = remap_y(bbox.top);
+    let y2 = remap_y(bbox.bottom);
+    canvas.set_draw_color(color);
+    canvas
+        .draw_rect(sdl2::rect::Rect::new(
+            x1 as i32,
+            y1 as i32,
+            (x2 - x1) as u32,
+            (y2 - y1) as u32,
+        ))
+        .unwrap();
 }
