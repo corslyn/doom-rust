@@ -1,4 +1,6 @@
-use crate::{config::SUBSECTOR_IDENTIFIER, Node, Player, Segment, Subsector};
+use crate::{
+    config::SUBSECTOR_IDENTIFIER, render::draw_segment, Node, Player, Segment, Subsector, Vertex,
+};
 
 pub fn is_on_left_side(player: &Player, node: &Node) -> bool {
     let dx = player.pos.0 as i32 - node.x_start as i32;
@@ -42,17 +44,18 @@ fn render_bsp_node(
     nodes: &Vec<Node>,
     node_id: u16,
     segments: &Vec<Segment>,
-
+    vertexes: &Vec<Vertex>,
     player: &Player,
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     remap_x: &Box<dyn Fn(i16) -> i32>,
     remap_y: &Box<dyn Fn(i16) -> i32>,
 ) {
-    if (node_id & 0x8000) != 0 {
+    if (node_id & SUBSECTOR_IDENTIFIER) != 0 {
         render_subsector(
             subsectors,
-            node_id & (!0x8000),
+            node_id & (!SUBSECTOR_IDENTIFIER),
             segments,
+            vertexes,
             canvas,
             remap_x,
             remap_y,
@@ -68,6 +71,7 @@ fn render_bsp_node(
             nodes,
             nodes[node_id as usize].l_child.try_into().unwrap(),
             segments,
+            vertexes,
             player,
             canvas,
             remap_x,
@@ -78,6 +82,7 @@ fn render_bsp_node(
             nodes,
             nodes[node_id as usize].r_child.try_into().unwrap(),
             segments,
+            vertexes,
             player,
             canvas,
             remap_x,
@@ -89,6 +94,7 @@ fn render_bsp_node(
             nodes,
             nodes[node_id as usize].r_child.try_into().unwrap(),
             segments,
+            vertexes,
             player,
             canvas,
             remap_x,
@@ -99,6 +105,7 @@ fn render_bsp_node(
             nodes,
             nodes[node_id as usize].l_child.try_into().unwrap(),
             segments,
+            vertexes,
             player,
             canvas,
             remap_x,
@@ -111,6 +118,8 @@ pub fn render(
     subsectors: &Vec<Subsector>,
     nodes: &Vec<Node>,
     segments: &Vec<Segment>,
+    vertexes: &Vec<Vertex>,
+
     player: &Player,
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     remap_x: &Box<dyn Fn(i16) -> i32>,
@@ -121,6 +130,7 @@ pub fn render(
         nodes,
         (nodes.len() - 1).try_into().unwrap(),
         segments,
+        vertexes,
         player,
         canvas,
         remap_x,
@@ -132,13 +142,14 @@ pub fn render_subsector(
     subsectors: &Vec<Subsector>,
     subsector_id: u16,
     segments: &Vec<Segment>,
+    vertexes: &Vec<Vertex>,
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     remap_x: &Box<dyn Fn(i16) -> i32>,
     remap_y: &Box<dyn Fn(i16) -> i32>,
 ) {
     let subsector = &subsectors[subsector_id as usize];
     for i in 0..subsector.seg_count {
-        println!("{}", subsector.first_seg);
         let seg = &segments[(subsector.first_seg as usize) + i as usize];
+        draw_segment(vertexes, seg, subsector_id as i16, canvas, remap_x, remap_y);
     }
 }

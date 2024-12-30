@@ -9,6 +9,9 @@ use sdl2::pixels::Color;
 use std::time::Duration;
 use utils::*;
 
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
+
 use crate::config::WIN_RES;
 use crate::*;
 
@@ -66,6 +69,7 @@ pub fn render(map: Map) {
             &map.subsectors,
             &map.nodes,
             &map.segments,
+            &map.vertexes,
             &player,
             &mut canvas,
             &remap_x,
@@ -104,7 +108,6 @@ pub fn render(map: Map) {
                 _ => {}
             }
         }
-
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // ~60 FPS
     }
 }
@@ -219,4 +222,32 @@ fn draw_bbox(
             (y2 - y1) as u32,
         ))
         .unwrap();
+}
+
+fn get_color(seed: u64) -> Color {
+    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    let r = rng.gen_range(0..255);
+    let g = rng.gen_range(0..255);
+    let b = rng.gen_range(0..255);
+    Color::RGB(r, g, b)
+}
+
+pub fn draw_segment(
+    vertexes: &Vec<Vertex>,
+    segment: &Segment,
+    subsector_id: i16,
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    remap_x: &Box<dyn Fn(i16) -> i32>,
+    remap_y: &Box<dyn Fn(i16) -> i32>,
+) {
+    let vertex1 = &vertexes[segment.start as usize];
+    let vertex2 = &vertexes[segment.end as usize];
+    canvas.set_draw_color(get_color(subsector_id as u64));
+    canvas
+        .draw_line(
+            (remap_x(vertex1.x_position), remap_y(vertex1.y_position)),
+            (remap_x(vertex2.x_position), remap_y(vertex2.y_position)),
+        )
+        .unwrap();
+    canvas.present();
 }
