@@ -2,6 +2,7 @@
 
 extern crate sdl2;
 
+use config::H_FOV;
 use sdl2::event::Event;
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::keyboard::Keycode;
@@ -56,15 +57,15 @@ pub fn render(map: Map) {
             &map.vertexes,
             &remap_x,
             &remap_y,
-        );*/
+        );
         draw_node(
             &map.nodes,
             map.nodes.len() - 1,
             &mut canvas,
             &remap_x,
             &remap_y,
-        );
-
+        );*/
+        /*
         bsp::render(
             &map.subsectors,
             &map.nodes,
@@ -74,7 +75,7 @@ pub fn render(map: Map) {
             &mut canvas,
             &remap_x,
             &remap_y,
-        );
+        );*/
 
         canvas.present();
 
@@ -105,6 +106,11 @@ pub fn render(map: Map) {
                     keycode: Some(Keycode::D),
                     ..
                 } => player.pos.0 += 10,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Right),
+                    ..
+                } => player.angle += 5,
+
                 _ => {}
             }
         }
@@ -120,7 +126,7 @@ fn automap(
     remap_x: &Box<dyn Fn(i16) -> i32>,
     remap_y: &Box<dyn Fn(i16) -> i32>,
 ) {
-    canvas.set_draw_color(Color::RGB(70, 70, 70)); // gray
+    canvas.set_draw_color(Color::RED);
     for linedef in &map.linedefs {
         let start = &map.vertexes[linedef.start as usize];
         let end = &map.vertexes[linedef.end as usize];
@@ -159,14 +165,18 @@ fn automap(
             _ => {}
         }
     }
-    /*  bsp::render(
+    bsp::render(
         &map.subsectors,
         &map.nodes,
+        &map.segments,
+        &map.vertexes,
         player,
         canvas,
         remap_x,
         remap_y,
-    ); */
+    );
+
+    draw_fov(canvas, player, remap_x, remap_y);
 }
 
 fn draw_player_pos(pos: (i16, i16), canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
@@ -224,14 +234,6 @@ fn draw_bbox(
         .unwrap();
 }
 
-fn get_color(seed: u64) -> Color {
-    let mut rng = ChaCha8Rng::seed_from_u64(seed);
-    let r = rng.gen_range(0..255);
-    let g = rng.gen_range(0..255);
-    let b = rng.gen_range(0..255);
-    Color::RGB(r, g, b)
-}
-
 pub fn draw_segment(
     vertexes: &Vec<Vertex>,
     segment: &Segment,
@@ -242,12 +244,42 @@ pub fn draw_segment(
 ) {
     let vertex1 = &vertexes[segment.start as usize];
     let vertex2 = &vertexes[segment.end as usize];
-    canvas.set_draw_color(get_color(subsector_id as u64));
+    canvas.set_draw_color(Color::GREEN);
     canvas
         .draw_line(
             (remap_x(vertex1.x_position), remap_y(vertex1.y_position)),
             (remap_x(vertex2.x_position), remap_y(vertex2.y_position)),
         )
         .unwrap();
-    canvas.present();
+    //canvas.present();
+}
+fn draw_fov(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    player: &Player,
+    remap_x: &Box<dyn Fn(i16) -> i32>,
+    remap_y: &Box<dyn Fn(i16) -> i32>,
+) {
+    let (x, y) = (remap_x(player.pos.0), remap_y(player.pos.1));
+
+    // The player's angle in radians
+    let player_angle = (player.angle as f64 + 90.0).to_radians();
+
+    // Calculate FOV boundaries
+    let left_angle = player_angle - H_FOV.to_radians(); // Left boundary of FOV
+    let right_angle = player_angle + H_FOV.to_radians(); // Right boundary of FOV
+
+    let len_ray = WIN_RES.1 as f64; // Length of the ray lines
+
+    let (x1, y1) = (
+        remap_x((player.pos.0 as f64 + len_ray * left_angle.sin()) as i16),
+        remap_y((player.pos.1 as f64 + len_ray * left_angle.cos()) as i16),
+    );
+    let (x2, y2) = (
+        remap_x((player.pos.0 as f64 + len_ray * right_angle.sin()) as i16),
+        remap_y((player.pos.1 as f64 + len_ray * right_angle.cos()) as i16),
+    );
+
+    canvas.set_draw_color(Color::YELLOW);
+    canvas.draw_line((x as i32, y as i32), (x1, y1)).unwrap();
+    canvas.draw_line((x as i32, y as i32), (x2, y2)).unwrap();
 }
