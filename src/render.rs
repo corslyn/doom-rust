@@ -7,6 +7,7 @@ use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use std::time::Duration;
+use utils::*;
 
 use crate::config::WIN_RES;
 use crate::*;
@@ -33,17 +34,26 @@ pub fn render(map: Map) {
     let remap_y = remap_y(&map.vertexes, WIN_RES.1);
 
     let mut automap_active = true; // Flag for automap toggle
-
+    let mut player = Player::new(&map.things);
     'running: loop {
         canvas.set_draw_color(Color::RGB(0, 0, 0)); // Black background
         canvas.clear();
 
         if automap_active {
             // Draw automap if active
-            automap(&mut canvas, &map, &remap_x, &remap_y);
+            automap(&mut canvas, &map, &player, &remap_x, &remap_y);
         }
 
-        draw_nodes(&mut canvas, &map.nodes, &remap_x, &remap_y);
+        //draw_bbox(&mut canvas, &map.nodes, &player, &remap_x, &remap_y);
+
+        /*render_subsectors(
+            &mut canvas,
+            &map.subsectors,
+            &map.segments,
+            &map.vertexes,
+            &remap_x,
+            &remap_y,
+        );*/
 
         canvas.present();
 
@@ -58,6 +68,22 @@ pub fn render(map: Map) {
                     keycode: Some(Keycode::Tab),
                     ..
                 } => automap_active = !automap_active, // Toggle automap state
+                Event::KeyDown {
+                    keycode: Some(Keycode::Z),
+                    ..
+                } => player.pos.1 += 10,
+                Event::KeyDown {
+                    keycode: Some(Keycode::S),
+                    ..
+                } => player.pos.1 -= 10,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Q),
+                    ..
+                } => player.pos.0 -= 10,
+                Event::KeyDown {
+                    keycode: Some(Keycode::D),
+                    ..
+                } => player.pos.0 += 10,
                 _ => {}
             }
         }
@@ -66,64 +92,20 @@ pub fn render(map: Map) {
     }
 }
 
-fn remap_x(vertices: &Vec<Vertex>, win_width: u32) -> Box<dyn Fn(i16) -> i32> {
-    let padding = 30.0;
-    // Determine map bounds for x-axis
-    let (min_x, max_x) = vertices
-        .iter()
-        .fold((i16::MAX, i16::MIN), |(min_x, max_x), vertex| {
-            (min_x.min(vertex.x_position), max_x.max(vertex.x_position))
-        });
-
-    // Adjust available screen width with padding
-    let padded_width = win_width as f32 - 2.0 * padding as f32;
-
-    // Calculate scaling factor and offset for x-axis
-    let map_width = (max_x - min_x) as f32;
-    let scale_x = padded_width / map_width;
-    let offset_x = padding as f32;
-
-    // Return a closure to perform x-coordinate remapping
-    Box::new(move |x: i16| -> i32 { (((x - min_x) as f32) * scale_x + offset_x) as i32 })
-}
-fn remap_y(vertices: &Vec<Vertex>, win_height: u32) -> Box<dyn Fn(i16) -> i32> {
-    let padding = 30;
-
-    // Determine map bounds for y-axis
-    let (min_y, max_y) = vertices
-        .iter()
-        .fold((i16::MAX, i16::MIN), |(min_y, max_y), vertex| {
-            (min_y.min(vertex.y_position), max_y.max(vertex.y_position))
-        });
-
-    // Adjust available screen height with padding
-    let padded_height = win_height as f32 - 2.0 * padding as f32;
-
-    // Calculate scaling factor and offset for y-axis
-    let map_height = (max_y - min_y) as f32;
-    let scale_y = padded_height / map_height;
-    let offset_y = padding as f32;
-
-    // Return a closure to perform y-coordinate remapping
-    Box::new(move |y: i16| -> i32 {
-        // Map the y-coordinate to screen space without flipping
-        let mapped_y = (y - min_y) as f32 * scale_y + offset_y;
-
-        // Flip the y-coordinate relative to the screen height
-        let flipped_y = win_height as f32 - mapped_y;
-
-        flipped_y.round() as i32
-    })
-}
-
-fn draw_nodes(
+fn draw_bbox(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     nodes: &Vec<Node>,
+    player: &Player,
     remap_x: &Box<dyn Fn(i16) -> i32>,
     remap_y: &Box<dyn Fn(i16) -> i32>,
 ) {
     // left rectangle
-    let node = bsp::find_player_node(1056, -3616, &nodes, (nodes.len() - 1).try_into().unwrap());
+    let node = bsp::find_player_node(
+        player.pos.0,
+        player.pos.1,
+        &nodes,
+        (nodes.len() - 1).try_into().unwrap(),
+    );
     let x1 = remap_x(node.l_box.right);
     let x2 = remap_x(node.l_box.left);
     let y1 = remap_y(node.l_box.bottom);
@@ -157,10 +139,11 @@ fn draw_nodes(
 fn automap(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     map: &Map,
+    player: &Player,
     remap_x: &Box<dyn Fn(i16) -> i32>,
     remap_y: &Box<dyn Fn(i16) -> i32>,
 ) {
-    canvas.set_draw_color(Color::RGB(255, 255, 0)); // Yellow for linedefs
+    canvas.set_draw_color(Color::RGB(70, 70, 70)); // gray
     for linedef in &map.linedefs {
         let start = &map.vertexes[linedef.start as usize];
         let end = &map.vertexes[linedef.end as usize];
@@ -188,12 +171,26 @@ fn automap(
         let x = remap_x(thing.x);
         let y = remap_y(thing.y);
         match thing.thing_type {
-            1 => canvas
-                .filled_circle(x as i16, y as i16, 2, Color::RGB(0, 255, 0))
-                .unwrap(), // Player green
+            1 => {
+                draw_player_pos(
+                    (
+                        remap_x(player.pos.0).try_into().unwrap(),
+                        remap_y(player.pos.1).try_into().unwrap(),
+                    ),
+                    canvas,
+                );
+            }
             _ => canvas
                 .filled_circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
                 .unwrap(), // The rest is orange
         }
     }
+}
+
+fn draw_player_pos(pos: (i16, i16), canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+    let x = pos.0;
+    let y = pos.1;
+    canvas
+        .filled_circle(x, y, 2, Color::RGB(0, 255, 0))
+        .unwrap() // Player green
 }

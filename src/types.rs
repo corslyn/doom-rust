@@ -105,3 +105,9 @@ pub struct BBox {
     pub left: i16,
     pub right: i16,
 }
+
+pub struct Player {
+    pub thing: i16,
+    pub angle: i16,
+    pub pos: (i16, i16),
+}
