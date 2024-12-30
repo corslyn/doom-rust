@@ -71,8 +71,8 @@ pub struct Node {
     pub dy_start: i16,
     pub r_box: BBox,
     pub l_box: BBox,
-    pub r_child: i16,
-    pub l_child: i16,
+    pub r_child: u16,
+    pub l_child: u16,
 }
 
 pub struct Subsector {
@@ -92,9 +92,9 @@ pub struct Segment {
 pub struct Thing {
     pub x: i16,
     pub y: i16,
-    pub angle: i16,
-    pub thing_type: i16,
-    pub flags: i16,
+    pub angle: u16,
+    pub thing_type: u16,
+    pub flags: u16,
 }
 
 /// Bounding box
@@ -107,7 +107,7 @@ pub struct BBox {
 }
 
 pub struct Player {
-    pub thing: i16,
-    pub angle: i16,
+    pub thing: u16,
+    pub angle: u16,
     pub pos: (i16, i16),
 }

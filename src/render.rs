@@ -62,6 +62,16 @@ pub fn render(map: Map) {
             &remap_y,
         );
 
+        bsp::render(
+            &map.subsectors,
+            &map.nodes,
+            &map.segments,
+            &player,
+            &mut canvas,
+            &remap_x,
+            &remap_y,
+        );
+
         canvas.present();
 
         for event in event_pump.poll_iter() {
@@ -99,6 +109,7 @@ pub fn render(map: Map) {
     }
 }
 
+/// Renders the automap
 fn automap(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     map: &Map,
@@ -117,22 +128,21 @@ fn automap(
         let y2 = remap_y(end.y_position);
         canvas.draw_line((x1, y1), (x2, y2)).unwrap();
     }
+    /*
+        // Draw vertices
+        for vertex in &map.vertexes {
+            // Remaps all coordinates so that they fit on the window
+            let x = remap_x(vertex.x_position);
+            let y = remap_y(vertex.y_position);
 
-    // Draw vertices
-    for vertex in &map.vertexes {
-        // Remaps all coordinates so that they fit on the window
-        let x = remap_x(vertex.x_position);
-        let y = remap_y(vertex.y_position);
-
-        canvas
-            .filled_circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
-            .unwrap(); // Draw vertices as circles
-    }
-
+            canvas
+                .filled_circle(x as i16, y as i16, 1, Color::RGB(255, 255, 255))
+                .unwrap(); // Draw vertices as circles
+        }
+    */
     // Place things on the map
+    // Only draws the player for now
     for thing in &map.things {
-        let x = remap_x(thing.x);
-        let y = remap_y(thing.y);
         match thing.thing_type {
             1 => {
                 draw_player_pos(
@@ -143,11 +153,17 @@ fn automap(
                     canvas,
                 );
             }
-            _ => canvas
-                .filled_circle(x as i16, y as i16, 2, Color::RGB(255, 128, 0))
-                .unwrap(), // The rest is orange
+            _ => {}
         }
     }
+    /*  bsp::render(
+        &map.subsectors,
+        &map.nodes,
+        player,
+        canvas,
+        remap_x,
+        remap_y,
+    ); */
 }
 
 fn draw_player_pos(pos: (i16, i16), canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
@@ -181,6 +197,8 @@ fn draw_node(
         )
         .unwrap();
 }
+
+/// Draws a bounding box
 fn draw_bbox(
     bbox: &BBox,
     color: Color,

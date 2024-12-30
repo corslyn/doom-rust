@@ -95,10 +95,10 @@ impl Wad {
             let offset = things_lump.filepos + i as i32 * 10;
             let x = i16::from_le_bytes(self.read_n_bytes(offset, 2).try_into().unwrap());
             let y = i16::from_le_bytes(self.read_n_bytes(offset + 2, 2).try_into().unwrap());
-            let angle = i16::from_le_bytes(self.read_n_bytes(offset + 4, 2).try_into().unwrap());
+            let angle = u16::from_le_bytes(self.read_n_bytes(offset + 4, 2).try_into().unwrap());
             let thing_type =
-                i16::from_le_bytes(self.read_n_bytes(offset + 6, 2).try_into().unwrap());
-            let flags = i16::from_le_bytes(self.read_n_bytes(offset + 8, 2).try_into().unwrap());
+                u16::from_le_bytes(self.read_n_bytes(offset + 6, 2).try_into().unwrap());
+            let flags = u16::from_le_bytes(self.read_n_bytes(offset + 8, 2).try_into().unwrap());
 
             things.push(Thing {
                 x,
@@ -179,8 +179,8 @@ impl Wad {
                 right: i16::from_le_bytes(self.read_n_bytes(offset + 22, 2).try_into().unwrap()),
             };
 
-            let r_child = i16::from_le_bytes(self.read_n_bytes(offset + 24, 2).try_into().unwrap());
-            let l_child = i16::from_le_bytes(self.read_n_bytes(offset + 26, 2).try_into().unwrap());
+            let r_child = u16::from_le_bytes(self.read_n_bytes(offset + 24, 2).try_into().unwrap());
+            let l_child = u16::from_le_bytes(self.read_n_bytes(offset + 26, 2).try_into().unwrap());
 
             nodes.push(Node {
                 x_start,
