@@ -29,7 +29,9 @@ impl Map {
     }
 
     pub fn render_automap(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
-        println!("Rendering automap");
+        let render_x_size = canvas.output_size().unwrap().0 - 1;
+        let render_y_size = canvas.output_size().unwrap().1 - 1;
+
         let x_shift = -self.x_min;
         let y_shift = -self.y_min;
         let scale_factor = 15;
@@ -39,23 +41,17 @@ impl Map {
             let start_vertex = &self.vertices[linedef.start_vertex as usize];
             let end_vertex = &self.vertices[linedef.end_vertex as usize];
 
-            println!(
-                "Drawing line from ({}, {}) to ({}, {})",
-                start_vertex.x_position,
-                start_vertex.y_position,
-                end_vertex.x_position,
-                end_vertex.y_position
-            );
-
             canvas
                 .draw_line(
                     (
                         ((start_vertex.x_position + x_shift) / scale_factor) as i32,
-                        ((start_vertex.y_position + y_shift) / scale_factor) as i32,
+                        ((render_y_size as i16 - (start_vertex.y_position + y_shift) / scale_factor)
+                            as i32),
                     ),
                     (
                         ((end_vertex.x_position + x_shift) / scale_factor) as i32,
-                        ((end_vertex.y_position + y_shift) / scale_factor) as i32,
+                        ((render_y_size as i16 - (end_vertex.y_position + y_shift) / scale_factor)
+                            as i32),
                     ),
                 )
                 .unwrap();
