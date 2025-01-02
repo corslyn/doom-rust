@@ -1,5 +1,5 @@
 use crate::{
-    data_types::{Directory, Linedef, Lump, Map, Thing, Vertex, Wad, WadHeader},
+    data_types::{Directory, Linedef, Lump, Map, Node, Thing, Vertex, Wad, WadHeader},
     map::LumpIndex,
 };
 
@@ -199,5 +199,66 @@ impl Wad {
             });
         }
         things
+    }
+
+    pub fn get_nodes(&self, map_name: &str) -> Vec<Node> {
+        let directory = self.read_directory();
+        let map_index = self.get_lump_index(map_name);
+        let nodes_index = map_index + LumpIndex::NODES as usize;
+        let nodes_lump = &directory.lumps[nodes_index];
+
+        let mut nodes = Vec::new();
+
+        for i in 0..nodes_lump.lump_size / 28 {
+            let offset = nodes_lump.lump_offset + i * 28;
+            let x_partition =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize).try_into().unwrap());
+            let y_partition =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 2).try_into().unwrap());
+            let change_x_partition =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 4).try_into().unwrap());
+            let change_y_partition =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 6).try_into().unwrap());
+
+            let right_bbox_top =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 8).try_into().unwrap());
+            let right_bbox_bottom =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 10).try_into().unwrap());
+            let right_bbox_left =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 12).try_into().unwrap());
+            let right_bbox_right =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 14).try_into().unwrap());
+
+            let left_bbox_top =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 16).try_into().unwrap());
+            let left_bbox_bottom =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 18).try_into().unwrap());
+            let left_bbox_left =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 20).try_into().unwrap());
+            let left_bbox_right =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 22).try_into().unwrap());
+
+            let right_child =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 24).try_into().unwrap());
+            let left_child =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 26).try_into().unwrap());
+            nodes.push(Node {
+                x_partition,
+                y_partition,
+                change_x_partition,
+                change_y_partition,
+                right_bbox_top,
+                right_bbox_bottom,
+                right_bbox_left,
+                right_bbox_right,
+                left_bbox_top,
+                left_bbox_bottom,
+                left_bbox_left,
+                left_bbox_right,
+                right_child,
+                left_child,
+            });
+        }
+        nodes
     }
 }

@@ -19,7 +19,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(wad: Wad, map: Map) -> Engine {
-        let resolution = (320, 200); // Logical resolution
+        let resolution: (u32, u32) = (320 * 4, 200 * 4); // Logical resolution
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let title = format!("Doom - {}", map.map_name);

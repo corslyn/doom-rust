@@ -48,6 +48,8 @@ pub struct Map {
 
     pub things: Vec<Thing>,
 
+    pub nodes: Vec<Node>,
+
     /// Minimum x coordinate
     pub x_min: i16,
     /// Maximum x coordinate
@@ -57,7 +59,11 @@ pub struct Map {
     /// Maximum y coordinate
     pub y_max: i16,
 
+    pub scale_factor: f32,
+
     pub player: Player,
+
+    pub render_y_size: u32,
 }
 
 /// Represents a vertex in the map.
@@ -91,4 +97,24 @@ pub struct Thing {
     pub angle: u16,
     pub thing_type: u16,
     pub flags: u16,
+}
+
+pub struct Node {
+    pub x_partition: i16,
+    pub y_partition: i16,
+    pub change_x_partition: i16,
+    pub change_y_partition: i16,
+
+    pub right_bbox_top: i16,
+    pub right_bbox_bottom: i16,
+    pub right_bbox_left: i16,
+    pub right_bbox_right: i16,
+
+    pub left_bbox_top: i16,
+    pub left_bbox_bottom: i16,
+    pub left_bbox_left: i16,
+    pub left_bbox_right: i16,
+
+    pub right_child: u16,
+    pub left_child: u16,
 }

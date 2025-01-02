@@ -1,4 +1,4 @@
-use sdl2::{gfx::primitives::DrawRenderer, pixels::Color};
+use sdl2::{gfx::primitives::DrawRenderer, pixels::Color, rect::Rect};
 
 use crate::{
     data_types::{Map, Wad},
@@ -26,31 +26,26 @@ impl Map {
             vertices: Vec::new(),
             linedefs: wad.get_linedefs(map_name),
             things: things.clone(),
+            nodes: wad.get_nodes(map_name),
             x_min: i16::MAX,
             x_max: i16::MIN,
             y_min: i16::MAX,
             y_max: i16::MIN,
             player: Player::new(things),
+            scale_factor: 15.0 / 4.0,
+            render_y_size: 0,
         }
     }
 
-    pub fn render_automap(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
-        let x_shift = -self.x_min;
-        let y_shift = -self.y_min;
-
-        self.render_automap_walls(canvas, x_shift, y_shift);
-        self.render_automap_player(canvas, x_shift, y_shift);
+    pub fn render_automap(&mut self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+        self.render_automap_walls(canvas);
+        self.render_automap_player(canvas);
+        self.render_automap_node(canvas);
     }
 
-    fn render_automap_walls(
-        &self,
-        canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
-        x_shift: i16,
-        y_shift: i16,
-    ) {
-        let render_y_size = canvas.output_size().unwrap().1 - 1;
+    fn render_automap_walls(&mut self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+        self.render_y_size = canvas.output_size().unwrap().1 - 1;
 
-        let scale_factor = 15;
         canvas.set_draw_color(Color::WHITE);
 
         for linedef in &self.linedefs {
@@ -60,29 +55,19 @@ impl Map {
             canvas
                 .draw_line(
                     (
-                        ((start_vertex.x_position + x_shift) / scale_factor) as i32,
-                        ((render_y_size as i16 - (start_vertex.y_position + y_shift) / scale_factor)
-                            as i32),
+                        self.remap_x_to_screen(start_vertex.x_position),
+                        self.remap_y_to_screen(start_vertex.y_position),
                     ),
                     (
-                        ((end_vertex.x_position + x_shift) / scale_factor) as i32,
-                        ((render_y_size as i16 - (end_vertex.y_position + y_shift) / scale_factor)
-                            as i32),
+                        self.remap_x_to_screen(end_vertex.x_position),
+                        self.remap_y_to_screen(end_vertex.y_position),
                     ),
                 )
                 .unwrap();
         }
     }
 
-    fn render_automap_player(
-        &self,
-        canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
-        x_shift: i16,
-        y_shift: i16,
-    ) {
-        let render_y_size = canvas.output_size().unwrap().1 - 1;
-
-        let scale_factor = 15;
+    fn render_automap_player(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
         canvas.set_draw_color(Color::RED);
 
         let player_x = self.things[0].x_position;
@@ -90,11 +75,75 @@ impl Map {
 
         canvas
             .filled_circle(
-                (player_x + x_shift) / scale_factor,
-                render_y_size as i16 - ((player_y + y_shift) / scale_factor),
+                self.remap_x_to_screen(player_x) as i16,
+                self.remap_y_to_screen(player_y) as i16,
                 1,
                 Color::RED,
             )
             .unwrap();
+    }
+
+    fn render_automap_node(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+        let node = self.nodes.last().unwrap(); // root node
+
+        canvas.set_draw_color(Color::GREEN);
+        canvas
+            .draw_rect(Rect::new(
+                self.remap_x_to_screen(node.right_bbox_left),
+                self.remap_y_to_screen(node.right_bbox_top),
+                (self.remap_x_to_screen(node.right_bbox_right)
+                    - self.remap_x_to_screen(node.right_bbox_left)
+                    + 1)
+                .try_into()
+                .unwrap(),
+                (self.remap_y_to_screen(node.right_bbox_bottom)
+                    - self.remap_y_to_screen(node.right_bbox_top)
+                    + 1)
+                .try_into()
+                .unwrap(),
+            ))
+            .unwrap();
+
+        canvas.set_draw_color(Color::RED);
+        canvas
+            .draw_rect(Rect::new(
+                self.remap_x_to_screen(node.left_bbox_left),
+                self.remap_y_to_screen(node.left_bbox_top),
+                (self.remap_x_to_screen(node.left_bbox_right)
+                    - self.remap_x_to_screen(node.left_bbox_left)
+                    + 1)
+                .try_into()
+                .unwrap(),
+                (self.remap_y_to_screen(node.left_bbox_bottom)
+                    - self.remap_y_to_screen(node.left_bbox_top)
+                    + 1)
+                .try_into()
+                .unwrap(),
+            ))
+            .unwrap();
+
+        canvas.set_draw_color(Color::BLUE);
+        canvas
+            .draw_line(
+                (
+                    self.remap_x_to_screen(node.x_partition),
+                    self.remap_y_to_screen(node.y_partition),
+                ),
+                (
+                    self.remap_x_to_screen(node.x_partition + node.change_x_partition),
+                    self.remap_y_to_screen(node.y_partition + node.change_y_partition),
+                ),
+            )
+            .unwrap();
+    }
+
+    fn remap_x_to_screen(&self, x: i16) -> i32 {
+        ((x + (-self.x_min)) as f32 / self.scale_factor) as i32
+    }
+
+    fn remap_y_to_screen(&self, y: i16) -> i32 {
+        (self.render_y_size as i16 - ((y + (-self.y_min)) as f32 / self.scale_factor) as i16)
+            .try_into()
+            .unwrap()
     }
 }
