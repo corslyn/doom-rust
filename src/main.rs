@@ -1,3 +1,10 @@
 #![allow(dead_code)]
 
-fn main() {}
+use data_types::Wad;
+
+mod data_types;
+mod wad;
+
+fn main() {
+    let wad = Wad::new("wad/DOOM1.WAD");
+}
