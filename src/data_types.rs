@@ -46,6 +46,7 @@ pub struct Map {
 }
 
 /// Represents a vertex in the map.
+#[derive(Debug)]
 pub struct Vertex {
     pub x_position: i16,
     pub y_position: i16,
