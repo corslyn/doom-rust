@@ -13,7 +13,9 @@ fn main() {
     let map = Map::new(&wad, "E4M1");
     let mut engine = Engine::new(wad, map);
 
-    while !engine.is_over {
+    while engine.running {
+        // Main loop
         engine.render();
+        engine.canvas.present();
     }
 }

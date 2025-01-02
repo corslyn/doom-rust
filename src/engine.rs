@@ -11,7 +11,7 @@ pub struct Engine {
     pub map: Map,
     pub wad: Wad,
     pub resolution: (u32, u32),
-    pub is_over: bool,
+    pub running: bool, // If the game is over
     pub canvas: sdl2::render::Canvas<sdl2::video::Window>,
     pub sdl_context: sdl2::Sdl,
     pub title: String,
@@ -19,7 +19,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(wad: Wad, map: Map) -> Engine {
-        let resolution = (320, 200);
+        let resolution = (320, 200); // Logical resolution
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let title = format!("Doom - {}", map.map_name);
@@ -28,12 +28,18 @@ impl Engine {
             .position_centered()
             .build()
             .unwrap();
-        let canvas = window.into_canvas().build().unwrap();
+        let mut canvas = window.into_canvas().build().unwrap();
+
+        // Set logical size
+        canvas
+            .set_logical_size(resolution.0, resolution.1)
+            .expect("Failed to set logical size");
+
         Engine {
             map,
             wad,
             resolution,
-            is_over: false,
+            running: true,
             canvas,
             sdl_context,
             title,
@@ -43,6 +49,7 @@ impl Engine {
     /// Renders the game
     pub fn render(&mut self) {
         self.canvas.set_draw_color(Color::BLACK);
+        self.canvas.clear();
         self.canvas.present();
         self.process_input();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // 60 fps
@@ -57,7 +64,7 @@ impl Engine {
                 | Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => self.is_over = true,
+                } => self.running = false,
                 _ => {}
             }
         }
