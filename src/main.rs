@@ -3,8 +3,10 @@
 use data_types::Wad;
 
 mod data_types;
+mod map;
 mod wad;
 
 fn main() {
-    let wad = Wad::new("wad/DOOM1.WAD");
+    let wad = Wad::new("wad/DOOM.WAD");
+    wad.read_directory();
 }
