@@ -43,10 +43,18 @@ pub struct Map {
 
     /// Linedefs of the map (lines between vertices)
     pub linedefs: Vec<Linedef>,
+    /// Minimum x coordinate
+    pub x_min: i16,
+    /// Maximum x coordinate
+    pub x_max: i16,
+    /// Minimum y coordinate
+    pub y_min: i16,
+    /// Maximum y coordinate
+    pub y_max: i16,
 }
 
 /// Represents a vertex in the map.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Vertex {
     pub x_position: i16,
     pub y_position: i16,

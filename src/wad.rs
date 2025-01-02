@@ -1,5 +1,5 @@
 use crate::{
-    data_types::{Directory, Linedef, Lump, Vertex, Wad, WadHeader},
+    data_types::{Directory, Linedef, Lump, Map, Vertex, Wad, WadHeader},
     map::LumpIndex,
 };
 
@@ -98,11 +98,11 @@ impl Wad {
     }
 
     /// Returns the vertices of the given map
-    pub fn get_vertices(&self, map_name: &str) -> Vec<Vertex> {
+    pub fn get_vertices(&self, map: &mut Map) -> Vec<Vertex> {
         let mut vertices = Vec::new();
         let directory = self.read_directory();
 
-        let map_index = self.get_lump_index(map_name);
+        let map_index = self.get_lump_index(&map.map_name);
         let vertices_index = map_index + LumpIndex::VERTEXES as usize;
 
         let vertices_lump = &directory.lumps[vertices_index];
@@ -110,6 +110,18 @@ impl Wad {
             let offset = vertices_lump.lump_offset + i * 4;
             let x = i16::from_le_bytes(self.read_2_bytes(offset as usize).try_into().unwrap());
             let y = i16::from_le_bytes(self.read_2_bytes(offset as usize + 2).try_into().unwrap());
+
+            if map.x_min > x {
+                map.x_min = x;
+            } else if map.x_max < x {
+                map.x_max = x;
+            }
+
+            if map.y_min > y {
+                map.y_min = y;
+            } else if map.y_max < y {
+                map.y_max = y;
+            }
             vertices.push(Vertex {
                 x_position: x,
                 y_position: y,

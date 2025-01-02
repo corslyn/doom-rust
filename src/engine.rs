@@ -50,6 +50,8 @@ impl Engine {
     pub fn render(&mut self) {
         self.canvas.set_draw_color(Color::BLACK);
         self.canvas.clear();
+        self.map.render_automap(&mut self.canvas);
+
         self.canvas.present();
         self.process_input();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // 60 fps

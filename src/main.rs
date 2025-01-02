@@ -10,7 +10,9 @@ mod wad;
 
 fn main() {
     let wad = Wad::new("wad/DOOM.WAD");
-    let map = Map::new(&wad, "E4M1");
+    let mut map = Map::new(&wad, "E1M1");
+    map.vertices = wad.get_vertices(&mut map);
+    println!("Vertices: {:?}", map.vertices);
     let mut engine = Engine::new(wad, map);
 
     while engine.running {
