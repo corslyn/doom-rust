@@ -1,5 +1,5 @@
 use crate::{
-    data_types::{Directory, Linedef, Lump, Map, Vertex, Wad, WadHeader},
+    data_types::{Directory, Linedef, Lump, Map, Thing, Vertex, Wad, WadHeader},
     map::LumpIndex,
 };
 
@@ -167,5 +167,37 @@ impl Wad {
             });
         }
         linedefs
+    }
+
+    pub fn get_map_things(&self, map_name: &str) -> Vec<Thing> {
+        let mut things = Vec::new();
+        let directory = self.read_directory();
+
+        let map_index = self.get_lump_index(map_name);
+        let things_index = map_index + LumpIndex::THINGS as usize;
+
+        let things_lump = &directory.lumps[things_index];
+
+        for i in 0..things_lump.lump_size / 10 {
+            let offset = things_lump.lump_offset + i * 10;
+            let x_position =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize).try_into().unwrap());
+            let y_position =
+                i16::from_le_bytes(self.read_2_bytes(offset as usize + 2).try_into().unwrap());
+            let angle =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 4).try_into().unwrap());
+            let thing_type =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 6).try_into().unwrap());
+            let flags =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 8).try_into().unwrap());
+            things.push(Thing {
+                x_position,
+                y_position,
+                angle,
+                thing_type,
+                flags,
+            });
+        }
+        things
     }
 }

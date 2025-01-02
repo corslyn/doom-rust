@@ -1,3 +1,5 @@
+use crate::player::Player;
+
 /// Represents a WAD file.
 pub struct Wad {
     /// Raw data of the WAD file
@@ -43,6 +45,9 @@ pub struct Map {
 
     /// Linedefs of the map (lines between vertices)
     pub linedefs: Vec<Linedef>,
+
+    pub things: Vec<Thing>,
+
     /// Minimum x coordinate
     pub x_min: i16,
     /// Maximum x coordinate
@@ -51,6 +56,8 @@ pub struct Map {
     pub y_min: i16,
     /// Maximum y coordinate
     pub y_max: i16,
+
+    pub player: Player,
 }
 
 /// Represents a vertex in the map.
@@ -76,4 +83,12 @@ pub struct Linedef {
     pub right_sidedef: u16,
     /// Left sidedef id
     pub left_sidedef: u16,
+}
+#[derive(Clone)]
+pub struct Thing {
+    pub x_position: i16,
+    pub y_position: i16,
+    pub angle: u16,
+    pub thing_type: u16,
+    pub flags: u16,
 }
