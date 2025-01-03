@@ -1,5 +1,5 @@
 use crate::{
-    data_types::{Directory, Linedef, Lump, Map, Node, Thing, Vertex, Wad, WadHeader},
+    data_types::{Directory, Linedef, Lump, Map, Node, Subsector, Thing, Vertex, Wad, WadHeader},
     map::LumpIndex,
 };
 
@@ -260,5 +260,27 @@ impl Wad {
             });
         }
         nodes
+    }
+
+    pub fn get_subsectors(&self, map_name: &str) -> Vec<Subsector> {
+        let directory = self.read_directory();
+        let map_index = self.get_lump_index(map_name);
+        let subsectors_index = map_index + LumpIndex::SSECTORS as usize;
+        let subsectors_lump = &directory.lumps[subsectors_index];
+
+        let mut subsectors = Vec::new();
+
+        for i in 0..subsectors_lump.lump_size / 4 {
+            let offset = subsectors_lump.lump_offset + i * 4;
+            let num_segs =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize).try_into().unwrap());
+            let first_seg =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 2).try_into().unwrap());
+            subsectors.push(Subsector {
+                num_segs,
+                first_seg,
+            });
+        }
+        subsectors
     }
 }

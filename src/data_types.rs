@@ -50,6 +50,8 @@ pub struct Map {
 
     pub nodes: Vec<Node>,
 
+    pub subsectors: Vec<Subsector>,
+
     /// Minimum x coordinate
     pub x_min: i16,
     /// Maximum x coordinate
@@ -117,4 +119,9 @@ pub struct Node {
 
     pub right_child: u16,
     pub left_child: u16,
+}
+
+pub struct Subsector {
+    pub num_segs: u16,
+    pub first_seg: u16,
 }
