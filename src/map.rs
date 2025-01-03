@@ -20,7 +20,7 @@ pub enum LumpIndex {
 
 impl Map {
     pub fn new(wad: &Wad, map_name: &str) -> Map {
-        let things = wad.get_map_things(map_name);
+        let things = wad.get_things(map_name);
         Map {
             map_name: map_name.to_string(),
             vertices: Vec::new(),

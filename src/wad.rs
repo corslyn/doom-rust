@@ -169,7 +169,7 @@ impl Wad {
         linedefs
     }
 
-    pub fn get_map_things(&self, map_name: &str) -> Vec<Thing> {
+    pub fn get_things(&self, map_name: &str) -> Vec<Thing> {
         let mut things = Vec::new();
         let directory = self.read_directory();
 
