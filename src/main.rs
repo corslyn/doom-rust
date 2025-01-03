@@ -14,7 +14,6 @@ fn main() {
     let mut map = Map::new(&wad, "E1M1");
     map.vertices = wad.get_vertices(&mut map);
     let mut engine = Engine::new(wad, map);
-
     while engine.running {
         // Main loop
         engine.render();

@@ -1,5 +1,7 @@
 use crate::{
-    data_types::{Directory, Linedef, Lump, Map, Node, Subsector, Thing, Vertex, Wad, WadHeader},
+    data_types::{
+        Directory, Linedef, Lump, Map, Node, Segment, Subsector, Thing, Vertex, Wad, WadHeader,
+    },
     map::LumpIndex,
 };
 
@@ -282,5 +284,39 @@ impl Wad {
             });
         }
         subsectors
+    }
+
+    pub fn get_segments(&self, map_name: &str) -> Vec<Segment> {
+        let directory = self.read_directory();
+        let map_index = self.get_lump_index(map_name);
+        let segments_index = map_index + LumpIndex::SEGS as usize;
+        let segments_lump = &directory.lumps[segments_index];
+
+        let mut segments = Vec::new();
+
+        for i in 0..segments_lump.lump_size / 12 {
+            let offset = segments_lump.lump_offset + i * 12;
+            let start_vertex =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize).try_into().unwrap());
+            let end_vertex =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 2).try_into().unwrap());
+            let angle =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 4).try_into().unwrap());
+            let linedef =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 6).try_into().unwrap());
+            let direction =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 8).try_into().unwrap());
+            let offset =
+                u16::from_le_bytes(self.read_2_bytes(offset as usize + 10).try_into().unwrap());
+            segments.push(Segment {
+                start_vertex,
+                end_vertex,
+                angle,
+                linedef,
+                direction,
+                offset,
+            });
+        }
+        segments
     }
 }

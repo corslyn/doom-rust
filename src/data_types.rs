@@ -52,6 +52,8 @@ pub struct Map {
 
     pub subsectors: Vec<Subsector>,
 
+    pub segments: Vec<Segment>,
+
     /// Minimum x coordinate
     pub x_min: i16,
     /// Maximum x coordinate
@@ -124,4 +126,14 @@ pub struct Node {
 pub struct Subsector {
     pub num_segs: u16,
     pub first_seg: u16,
+}
+
+#[derive(Debug)]
+pub struct Segment {
+    pub start_vertex: u16,
+    pub end_vertex: u16,
+    pub angle: u16,
+    pub linedef: u16,
+    pub direction: u16, // 0 = same as linedef, 1 = opposite
+    pub offset: u16,    // distance along linedef to start of seg
 }

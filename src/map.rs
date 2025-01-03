@@ -10,7 +10,7 @@ pub enum LumpIndex {
     LINEDEFS,
     SIDEDEFS,
     VERTEXES,
-    SEAGS,
+    SEGS,
     SSECTORS,
     NODES,
     SECTORS,
@@ -28,6 +28,7 @@ impl Map {
             things: things.clone(),
             nodes: wad.get_nodes(map_name),
             subsectors: wad.get_subsectors(map_name),
+            segments: wad.get_segments(map_name),
             x_min: i16::MAX,
             x_max: i16::MIN,
             y_min: i16::MAX,
@@ -183,7 +184,7 @@ impl Map {
         let subsector_identifier = 0x8000;
 
         if (node_id & subsector_identifier) != 0 {
-            self.render_subsector();
+            self.render_subsector(canvas, node_id & !subsector_identifier);
             return;
         }
 
@@ -202,5 +203,33 @@ impl Map {
         }
     }
 
-    fn render_subsector(&self) {}
+    fn render_subsector(
+        &self,
+        canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+        subsector_id: usize,
+    ) {
+        let subsector = &self.subsectors[subsector_id];
+        canvas.set_draw_color(Color::GREEN);
+
+        for seg_id in
+            subsector.first_seg as usize..subsector.first_seg as usize + subsector.num_segs as usize
+        {
+            let seg = &self.segments[seg_id];
+            let start_vertex = &self.vertices[seg.start_vertex as usize];
+            let end_vertex = &self.vertices[seg.end_vertex as usize];
+
+            canvas
+                .draw_line(
+                    (
+                        self.remap_x_to_screen(start_vertex.x_position),
+                        self.remap_y_to_screen(start_vertex.y_position),
+                    ),
+                    (
+                        self.remap_x_to_screen(end_vertex.x_position),
+                        self.remap_y_to_screen(end_vertex.y_position),
+                    ),
+                )
+                .unwrap();
+        }
+    }
 }
