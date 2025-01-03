@@ -3,6 +3,7 @@
 use data_types::{Map, Wad};
 use engine::Engine;
 
+mod angle;
 mod data_types;
 mod engine;
 mod map;

@@ -52,8 +52,9 @@ impl Engine {
         self.canvas.clear();
         self.map.render_automap(&mut self.canvas);
 
-        self.canvas.present();
         self.process_input();
+        self.canvas.present();
+
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // 60 fps
     }
 
@@ -67,6 +68,17 @@ impl Engine {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => self.running = false,
+
+                Event::KeyDown {
+                    keycode: Some(Keycode::Right),
+                    ..
+                } => {
+                    self.map.player.rotate_right();
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Left),
+                    ..
+                } => self.map.player.rotate_left(),
                 _ => {}
             }
         }

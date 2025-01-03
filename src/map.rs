@@ -217,19 +217,27 @@ impl Map {
             let seg = &self.segments[seg_id];
             let start_vertex = &self.vertices[seg.start_vertex as usize];
             let end_vertex = &self.vertices[seg.end_vertex as usize];
-
-            canvas
-                .draw_line(
-                    (
-                        self.remap_x_to_screen(start_vertex.x_position),
-                        self.remap_y_to_screen(start_vertex.y_position),
-                    ),
-                    (
-                        self.remap_x_to_screen(end_vertex.x_position),
-                        self.remap_y_to_screen(end_vertex.y_position),
-                    ),
-                )
-                .unwrap();
+            let angle1 = self.player.angle_to_vertex(start_vertex);
+            let angle2 = self.player.angle_to_vertex(end_vertex);
+            if self.player.clip_vertexes_in_fov(
+                &self.vertices[seg.start_vertex as usize],
+                &self.vertices[seg.end_vertex as usize],
+                angle1,
+                angle2,
+            ) {
+                canvas
+                    .draw_line(
+                        (
+                            self.remap_x_to_screen(start_vertex.x_position),
+                            self.remap_y_to_screen(start_vertex.y_position),
+                        ),
+                        (
+                            self.remap_x_to_screen(end_vertex.x_position),
+                            self.remap_y_to_screen(end_vertex.y_position),
+                        ),
+                    )
+                    .unwrap();
+            }
         }
     }
 }
